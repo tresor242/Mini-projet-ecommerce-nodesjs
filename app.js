@@ -12,6 +12,7 @@ const authRoutes = require("./routes/authRoutes");
 
 
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -46,7 +47,8 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/auth", authRoutes);
 app.use("/admin", isAuthenticated, adminRoutes); // Protection des routes admin
-app.use("/products", isAuthenticated, productRoutes); // Protection des routes produits
+app.use("/admin/products", isAuthenticated,productRoutes ); // Protection des routes produits
+
 
 // Lancement du serveur
 app.listen(PORT, () => {

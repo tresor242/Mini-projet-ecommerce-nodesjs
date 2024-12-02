@@ -1,59 +1,99 @@
 const Product = require('../models/Product');
 const fs = require('fs');
+const path = require('path');
 
-// Obtenir tous les produits
+// Afficher tous les produits
 exports.getProducts = async (req, res) => {
     try {
         const products = await Product.find();
-        res.render('products', { title: "Products", products });
+        res.render('manage_products', { products });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).send('Error loading products: ' + err.message);
     }
+};
+
+// Afficher le formulaire d'ajout de produit
+exports.showAddProductForm = (req, res) => {
+    res.render('add_product', { title: 'Add Product' });
 };
 
 // Ajouter un produit
 exports.addProduct = async (req, res) => {
     try {
+        const { name, price, description } = req.body;
         const product = new Product({
-            name: req.body.name,
-            price: req.body.price,
-            description: req.body.description,
-            image: req.file.filename,
+            name,
+            price,
+            description,
+            image: req.file ? req.file.filename : 'default.jpg',
         });
+
         await product.save();
-        req.session.message = { type: 'success', message: 'Product added successfully!' };
-        res.redirect('/products');
+        res.redirect('/admin/products');
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).send('Error adding product: ' + err.message);
     }
 };
 
-// Afficher le formulaire d’ajout
-exports.showAddProductForm = (req, res) => {
-    res.render('add_product', { title: "Add Product" });
+// Afficher le formulaire de modification d'un produit
+exports.showEditProductForm = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+
+        res.render('edit_product', { product });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error loading product: ' + err.message);
+    }
+};
+
+// Modifier un produit
+exports.updateProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const { name, price, description } = req.body;
+        const updatedData = { name, price, description };
+
+        if (req.file) {
+            updatedData.image = req.file.filename;
+        }
+
+        await Product.findByIdAndUpdate(productId, updatedData);
+        res.redirect('/admin/products');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error updating product: ' + err.message);
+    }
 };
 
 // Supprimer un produit
 exports.deleteProduct = async (req, res) => {
-    const id = req.params.id;
     try {
-        const product = await Product.findById(id);
-        if (product) {
-            if (product.image) {
-                try {
-                    fs.unlinkSync("./uploads/" + product.image);
-                } catch (err) {
-                    console.log("Erreur lors de la suppression de l'image : ", err);
-                }
-            }
-            await Product.findByIdAndDelete(id);
-            req.session.message = { type: 'success', message: 'Product deleted successfully!' };
-            res.redirect('/products');
-        } else {
-            req.session.message = { type: 'danger', message: 'Product not found!' };
-            res.redirect('/products');
+        const productId = req.params.id;
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).send('Product not found');
         }
+
+        if (product.image && product.image !== 'default.jpg') {
+            const imagePath = path.join(__dirname, '../uploads', product.image);
+            fs.unlink(imagePath, (err) => {
+                if (err) console.error(`Error deleting image: ${err.message}`);
+            });
+        }
+
+        await Product.findByIdAndDelete(productId);
+        res.redirect('/admin/products');
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+        res.status(500).send('Error deleting product: ' + err.message);
     }
 };
