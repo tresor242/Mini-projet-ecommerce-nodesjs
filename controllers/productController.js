@@ -97,3 +97,14 @@ exports.deleteProduct = async (req, res) => {
         res.status(500).send('Error deleting product: ' + err.message);
     }
 };
+
+
+exports.getProductsForShop = async (req, res) => {
+    try {
+        const products = await Product.find(); // Récupérer tous les produits
+        res.render("shop_products", { products }); // Rendre la vue avec les produits
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error loading shop products: " + err.message);
+    }
+};

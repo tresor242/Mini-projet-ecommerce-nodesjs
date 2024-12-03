@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const adminController = require('../controllers/adminController');
 const userController = require('../controllers/userController');
+const productController = require('../controllers/productController');
 const router = express.Router();
 
 // Configuration Multer pour gérer les uploads
@@ -26,4 +27,11 @@ router.get('/users/edit/:id', userController.showEditUserForm); // Formulaire de
 router.post('/users/edit/:id', upload.single('image'), userController.updateUser); // Soumission de modification
 router.post('/users/delete/:id', userController.deleteUser);
 
+// Routes pour la gestion des produits
+router.get("/products", productController.getProducts);
+router.get("/products/add", productController.showAddProductForm);
+router.post("/products/add", upload.single("image"), productController.addProduct);
+router.get("/products/edit/:id", productController.showEditProductForm);
+router.post("/products/edit/:id", upload.single("image"), productController.updateProduct);
+router.post("/products/delete/:id", productController.deleteProduct);
 module.exports = router;

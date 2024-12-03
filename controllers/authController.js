@@ -1,12 +1,12 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
-// Afficher la page de connexion
+// Affiche la page de connexion
 exports.showLoginForm = (req, res) => {
     res.render('login', { title: 'Login' });
 };
 
-// Afficher la page d'inscription
+// Affiche la page d'inscription
 exports.showRegisterForm = (req, res) => {
     res.render('register', { title: 'Register' });
 };
@@ -35,8 +35,8 @@ exports.register = async (req, res) => {
             email,
             phone,
             password: hashedPassword,
-            role, // Rôle choisi
-            image: req.file ? req.file.filename : 'default.jpg', // Image par défaut si aucune image n'est fournie
+            role, 
+            image: req.file ? req.file.filename : 'default.jpg', 
         });
 
         await user.save(); // Sauvegarder l'utilisateur dans MongoDB
@@ -55,11 +55,6 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validation des champs requis
-        if (!email || !password) {
-            return res.status(400).send('Email and password are required.');
-        }
-
         // Rechercher l'utilisateur par email
         const user = await User.findOne({ email });
         if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -70,12 +65,17 @@ exports.login = async (req, res) => {
         req.session.user = { id: user._id, role: user.role };
 
         // Rediriger en fonction du rôle
-        res.redirect(user.role === 'admin' ? '/admin' : '/products');
+        if (user.role === 'admin') {
+            res.redirect('/admin');
+        } else {
+            res.redirect('/shop/products'); // Redirection pour les utilisateurs
+        }
     } catch (err) {
         console.error(err);
         res.status(500).send('Error during login: ' + err.message);
     }
 };
+
 
 // Déconnexion
 exports.logout = (req, res) => {

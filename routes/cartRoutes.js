@@ -1,19 +1,33 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
+const cartController = require('../controllers/cartController');
+const stripeController = require('../controllers/stripeController');
 
+// Afficher le panier
+router.get('/', cartController.getCart);
 
-router.get('/cart', (req, res) => {
-    const cart = req.session.cart || [];
-    res.render('cart', { cart });
+// Ajouter un produit au panier
+router.post('/add/:id', cartController.addToCart);
+
+// Mettre à jour la quantité
+router.post('/update/:id/increase', (req, res) => {
+    req.query.action = 'increase'; // Ajouter l'action dans la requête
+    cartController.updateQuantity(req, res);
 });
 
-router.post('/cart/add/:id', async (req, res) => {
-    const product = await Product.findById(req.params.id);
-    const cart = req.session.cart || [];
-    cart.push({ product, quantity: 1 });
-    req.session.cart = cart;
-    res.redirect('/cart');
+router.post('/update/:id/decrease', (req, res) => {
+    req.query.action = 'decrease'; // Ajouter l'action dans la requête
+    cartController.updateQuantity(req, res);
 });
+
+
+
+// Supprimer un produit du panier
+router.post('/remove/:id', cartController.removeFromCart);
+
+
+// Route pour le paiement
+router.get('/success', stripeController.successPage);
+router.post('/checkout', stripeController.checkout);
 
 module.exports = router;

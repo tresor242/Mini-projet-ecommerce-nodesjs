@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/shop/products">Shop</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/shop/cart">Cart</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1>Your Cart</h1>
+        <% if (message) { %>
+            <div class="alert alert-<%= message.type %>"><%= message.text %></div>
+        <% } %>
+        <% if (cartItems.length === 0) { %>
+            <p>Your cart is empty.</p>
+        <% } else { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% cartItems.forEach(item => { %>
+                        <tr>
+                            <td><%= item.name %></td>
+                            <td>$<%= item.price %></td>
+                            <td>
+                                <form action="/shop/cart/update/<%= item.productId %>/increase" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-secondary btn-sm">+</button>
+                                </form>
+                                <%= item.quantity %>
+                                <form action="/shop/cart/update/<%= item.productId %>/decrease" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-secondary btn-sm">-</button>
+                                </form>
+                            </td>
+                            
+                            <td>$<%= item.price * item.quantity %></td>
+                            <td>
+                                <form action="/shop/cart/remove/<%= item.productId %>" method="POST">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+            <h3>Total: $<%= total %></h3>
+        <% } %>
+    </div>
+
+    <% if (cartItems.length > 0) { %>
+        <form action="/shop/cart/checkout" method="POST">
+            <button type="submit" class="btn btn-success btn-lg">Proceed to Checkout</button>
+        </form>
+    <% } %>
+    
+</body>
+</html>
